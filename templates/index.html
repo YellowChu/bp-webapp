@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html  lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <title>Pysense Data</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <!-- Bootstraps Java Scipts Links -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <!-- JQuery links  -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <!--High CHART LIVE  -->
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="http://code.highcharts.com/highcharts-more.js"></script>
+    <script src="http://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <!--Gauge  -->
+    <script type="text/javascript" src="http://pubnub.github.io/eon/lib/eon.js"></script>
+</head>
+
+<body>
+    <!-- Title  -->
+    <div class="jumbotron">
+        <h1 class="text-center text-white">Pysense Data</h1>
+    </div>
+    <br>
+    <!-- Loading screen -->
+    <div class='spinner-wrapper'>
+        <div class="spinner-border"></div>
+    </div>
+    <!-- Battery and datarate values -->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-5 jumbotron p-2 mx-1">
+                <h1 class="sensor1"> Sensor : </h1>
+            </div>
+            <br>
+
+            <div class="col-5 jumbotron p-2 mx-1">
+                <h1 class="sensor2">Sensor :</h1>
+            </div>
+            <br>
+        </div>
+    </div>
+    <!-- Temperature chart -->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="container-fluid" id="data-temperature">
+
+            </div>
+        </div>
+    </div>
+    <br>
+    <!-- Pressure chart -->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="container-fluid" id="data-pressure">
+
+            </div>
+        </div>
+    </div>
+    <!-- Download data web form -->
+    <div class="container-fluid">
+        <form class="send-command" method="POST" action="/download">
+            <label>How much data do you want to download?</label>
+            <input type="number" name="numOfDownloads">
+            <button type="submit" class="btn btn-secondary">Download CSV</button>
+        </form>
+    </div>
+    <!-- Issue downlink web form -->
+    <form class="send-command" method="POST" action="/send">
+        <!-- Led color -->
+        <div class="led-form">
+            <label class="led_color">Color of the LED: </label>
+            <select id="led_color" name="led_color">
+                <option value="no">Do not change</option>
+                <option value="red">Red</option>
+                <option value="green">Green</option>
+                <option value="blue">Blue</option>
+                <option value="purple">Purple</option>
+                <option value="yellow">Yellow</option>
+            </select>
+        </div>
+        <!-- Data Rate -->
+        <div class="dr-form">
+            <label class="dr_sf">Data Rate/Spreading Factor: </label>
+            <select id="dr_sf" name="dr_sf">
+                <option value="no">Do not change</option>
+                <option value="dr5">DR5/SF7 (T=5min)</option>
+                <option value="dr4">DR4/SF8 (T=10min)</option>
+                <option value="dr3">DR3/SF9 (T=15min)</option>
+                <option value="dr2">DR2/SF10 (T=30min)</option>
+                <option value="dr1">DR1/SF11 (T=60min)</option>
+                <option value="dr0">DR0/SF12 (T=90min)</option>
+            </select>
+        </div>
+        <!-- Password -->
+        <label class="password">Password: </label>
+        <input type="password" name="password" placeholder="Enter password">
+        <br>
+        <button type="submit" class="btn btn-secondary">Submit</button>
+    </form>
+
+    <style>
+        .spinner-wrapper{
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .jumbotron{
+            widows: 150px;
+            height: 70px;
+            justify-content: center;
+            text-align: center;
+        }
+        .row{
+            justify-content: center;
+        }
+        .send-command {
+            max-width: 700px;
+            border-radius: 1em;
+            margin: 2rem auto;
+            padding: 14px 20px;
+            background: #e5e5e5;
+        }
+        input[type=password] {
+            margin-left: 12px;
+            height: 25px;
+            width: 200px;
+        }
+        p.password {
+            margin-left: 17px;
+        }
+    </style>
+
+    <script>
+        // initializes loading screen and high charts
+        let spinnerWrapper = document.querySelector('.spinner-wrapper');
+        var chartTemperature;
+        var chartPressure;
+
+        // requests data from the backend
+        function requestData(){
+            var requests = $.get('/data');
+            var tm = requests.done(function (result){
+                // loading screen disapears when data is loaded
+                spinnerWrapper.style.display = 'none';
+
+                // temperature chart and data inside it
+                var seriesTemperature = chartTemperature.series[0];
+                var dataTemperature = seriesTemperature.data;
+                // pressure chart and data inside it
+                var seriesPressure = chartPressure.series[0];
+                var dataPressure = seriesPressure.data;
+
+                // initializes values that will update old one
+                var newTempData;
+                var newPresData;
+                var battery = result[0].battery
+                var altitude = result[0].altitude
+                var dataRate = result[0].datarate
+
+                dataTemperature = [];
+                dataPressure = [];
+                // loops through the response results and creates arrayes with new values
+                for (var i = 0; i < result.length; i++){
+                    var obj = result[i];
+                    newTempData = [];
+                    newPresData = [];
+
+                    newTempData.push(obj.time);
+                    newPresData.push(obj.time);
+                    newTempData.push(obj.temperature);
+                    newPresData.push(obj.pressure);
+
+                    dataTemperature.push(newTempData);
+                    dataPressure.push(newPresData);
+                }
+
+                // updates values in the charts and draws them with animation
+                seriesTemperature.setData(dataTemperature, false);
+                seriesPressure.setData(dataPressure, false);
+                chartTemperature.redraw();
+                chartPressure.redraw();
+
+                ///////////////////////////////////////////////////////////////
+                // new data gets redrawn incorrectly sometimes in the charts //
+                // pushing data twice fixes it for some reason, that is why  //
+                // there is a repeated code                                  //
+                ///////////////////////////////////////////////////////////////
+                dataTemperature = [];
+                dataPressure = [];
+                for (var i = 0; i < result.length; i++){
+                    var obj = result[i];
+                    newTempData = [];
+                    newPresData = [];
+
+                    newTempData.push(obj.time);
+                    newPresData.push(obj.time);
+                    newTempData.push(obj.temperature);
+                    newPresData.push(obj.pressure);
+
+                    dataTemperature.push(newTempData);
+                    dataPressure.push(newPresData);
+                }
+
+                seriesTemperature.setData(dataTemperature, false);
+                seriesPressure.setData(dataPressure, false);
+                chartTemperature.redraw();
+                chartPressure.redraw();
+
+                $(".sensor1").text("Battery: " + Math.round(battery * 100) / 100 + " V" );
+                $(".sensor2").text(dataRate);
+
+
+                // call for new data again after delay
+                setTimeout(requestData, 500);
+            });
+        }
+
+        $(document).ready(function() {
+            // Temperature chart settings
+            chartTemperature = new Highcharts.Chart({
+                chart: {
+                    renderTo: 'data-temperature',
+                    defaultSeriesType: 'line',
+                    events: {
+                        load: requestData
+                            }
+                },
+                exporting: {
+                    showTable: false,
+                    tableCaption: 'Data table',
+                    csv: {
+                        dateFormat: '%Y %m %d %H:%M:%S'
+                    }
+                },
+                title: {
+                    text: 'Temperature dependent on time'
+                },
+                xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150,
+                    maxZoom: 20 * 1000,
+                },
+                yAxis: {
+                    minPadding: 0.2,
+                    maxPadding: 0.2,
+                    title: {
+                        text: '°C',
+                        margin: 40
+                    }
+                },
+                tooltip: {
+                   formatter: function() {
+                     return Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x) + '<br>' + '<b>Temperature: ' + Math.round(this.y * 10) / 10 + ' °C</b>'
+                   }
+                },
+                plotOptions: {
+                    series: {
+                        marker: {
+                            enabled: true
+                        }
+                    }
+                },
+                series: [{
+                    color : '#c23d23',
+                    lineColor: '#c23d23',
+                    name: 'Temperature',
+                    data: []
+                }]
+            });
+            // Pressure chart setting
+            chartPressure = new Highcharts.Chart({
+                chart:
+                    {
+                        renderTo: 'data-pressure',
+                        defaultSeriesType: 'line',
+                        events: {
+                            load: requestData
+                        }
+                    },
+                exporting: {
+                    showTable: false,
+                    tableCaption: 'Data table',
+                    csv: {
+                        dateFormat: '%Y %m %d %H:%M:%S'
+                    }
+                },
+                title:
+                    {
+                        text: 'Pressure dependent on time'
+                    },
+                xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150,
+                    maxZoom: 20 * 1000,
+                },
+                yAxis: {
+                    minPadding: 0.2,
+                    maxPadding: 0.2,
+                    title: {
+                        text: 'Pa',
+                        margin: 80
+                    }
+                },
+                tooltip: {
+                   formatter: function() {
+                     return Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x) + '<br>' + '<b>Pressure: ' + Math.round(this.y * 10) / 10 + ' Pa</b>'
+                   }
+                },
+                plotOptions: {
+                    series: {
+                        marker: {
+                            enabled: true
+                        }
+                    }
+                },
+                series: [{
+                    lineColor: '#1d82b8',
+                    name: 'Pressure',
+                    data: []
+                }]
+            });
+
+
+        });
+    </script>
+
+    <script>
+        class Image{
+
+            constructor(imgUrl, size)
+            {
+                this.imgUrl=imgUrl;
+                this.size=size;
+            }
+
+            backgroundImage()
+            {
+                // Select the Image
+                var img = document.querySelector(".jumbotron");
+
+                // create Css Text
+                var text = "margin:auto;"+
+                    "background-image: url("+this.imgUrl+");" +
+                    "background-size:cover;"+
+                    "opacity:1;"+
+                    "background-blend-mode: darken;"+
+                    "height: "+ this.size + "vh;";
+
+                img.style.cssText =  text;
+            }
+
+
+        }
+        const imgUrl = 'https://www.fg-a.com/wallpapers/2020-black-crystalline-peaks-image.jpg'
+        const size = "10";
+        var obj = new Image(imgUrl, size);
+        obj.backgroundImage();
+    </script>
+</body>
+</html>

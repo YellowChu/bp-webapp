@@ -34,6 +34,23 @@
     <div class='spinner-wrapper'>
         <div class="spinner-border"></div>
     </div>
+    <!-- User notifying window -->
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+
+              {% for message in messages %}
+              <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <span>{{ message }}</span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              {% endfor %}
+
+            {% endif %}
+        {% endwith %}
+    </div>
     <!-- Battery and datarate values -->
     <div class="container-fluid">
         <div class="row">
@@ -68,8 +85,10 @@
     <!-- Download data web form -->
     <div class="container-fluid">
         <form class="send-command" method="POST" action="/download">
-            <label>How much data do you want to download?</label>
-            <input type="number" name="numOfDownloads">
+            <label>From:</label>
+            <input type="datetime-local" name=from>
+            <label> To:</label>
+            <input type="datetime-local" name=to>
             <button type="submit" class="btn btn-secondary">Download CSV</button>
         </form>
     </div>

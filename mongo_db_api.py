@@ -2,6 +2,7 @@ from pymongo import MongoClient
 import time
 import csv
 import os
+from datetime import datetime, timedelta
 
 # stores data if it is unique
 def storeData(data):
@@ -29,24 +30,25 @@ def storeData(data):
 
         collection.insert_one(post)
 
-# creates csv file with n-number of data
-def getData(n):
+# creates csv file with data between the entered interval
+def getData(from_timestamp, to_timestamp):
     # connects to database
     cluster = MongoClient(os.environ.get("MONGODB_CLIENT"))
     db = cluster[os.environ.get("MONGODB_DATABASE")]
     collection = db[os.environ.get("MONGODB_COLLECTION")]
 
-    # finds n-number of data sorted from newest to oldest
-    results = collection.find().sort([('time', -1)]).limit(n)
+    # finds data between the interval
+    results = collection.find({'time': {'$gte': from_timestamp, '$lte': to_timestamp+60}}).sort([('time', -1)])
 
-    # creates csv file with num. of data, timestamp, temp., pressure as parameters
+    # creates csv file with num. of data, datetime, temp., pressure as parameters
     i = 0
     with open("data.csv", "w", newline='') as csvfile:
-        field_names = ["i", "timestamp", "temperature", "pressure"]
+        field_names = ["i", "Date Time", "Temperature [°C]", "Pressure [Pa]"]
 
         theWriter = csv.DictWriter(csvfile, fieldnames=field_names)
         theWriter.writeheader()
 
         for result in results:
             i += 1
-            theWriter.writerow({"i":i, "timestamp":result["time"], "temperature":result["temperature"], "pressure":result["pressure"]})
+            dt = datetime.fromtimestamp(result["time"]) - timedelta(hours=2)
+            theWriter.writerow({"i":i, "Date Time":dt, "Temperature [°C]":result["temperature"], "Pressure [Pa]":result["pressure"]})
